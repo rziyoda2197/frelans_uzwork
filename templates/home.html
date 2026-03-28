@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Bosh sahifa{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <!-- Sparkle Decorations -->
+    <div class="hero-sparkle">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+    </div>
+
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge" style="animation: fadeInUp 0.6s ease 0.1s both;">🇺🇿 O'zbekistonning #1 frilanserlar platformasi</div>
+            <h1 style="animation: fadeInUp 0.6s ease 0.2s both;">
+                Professional <span class="gradient-text">frilanserlar</span>
+                bilan ishlang
+            </h1>
+            <p style="animation: fadeInUp 0.6s ease 0.3s both;">
+                UzWork — buyurtmachilar va frilanserlarni bog'lovchi zamonaviy platforma.
+                O'z loyihangiz uchun eng yaxshi mutaxassislarni toping yoki frilanser sifatida
+                yangi loyihalarda ishlang.
+            </p>
+            <div class="hero-actions" style="animation: fadeInUp 0.6s ease 0.4s both;">
+                <a href="{% url 'register' %}" class="btn btn-primary btn-lg btn-pulse">🚀 Boshlash</a>
+                <a href="{% url 'project_list' %}" class="btn btn-secondary btn-lg">📋 Loyihalarni ko'rish</a>
+            </div>
+            <div class="hero-stats" style="animation: fadeInUp 0.6s ease 0.5s both;">
+                <div class="stat">
+                    <div class="stat-number"><span class="counter-value" data-target="{{ freelancers_count|default:'0' }}" data-suffix="+">0</span></div>
+                    <div class="stat-label">Frilanserlar</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number"><span class="counter-value" data-target="{{ projects_count|default:'0' }}" data-suffix="+">0</span></div>
+                    <div class="stat-label">Loyihalar</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number"><span class="counter-value" data-target="{{ completed_count|default:'0' }}" data-suffix="+">0</span></div>
+                    <div class="stat-label">Yakunlangan</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number"><span class="counter-value" data-target="{{ clients_count|default:'0' }}" data-suffix="+">0</span></div>
+                    <div class="stat-label">Buyurtmachilar</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section how-it-works">
+    <div class="container">
+        <div class="section-header reveal">
+            <h2>Qanday ishlaydi?</h2>
+            <p>Uch oddiy qadamda loyihangizni boshlang</p>
+        </div>
+        <div class="steps-container stagger-children">
+            <div class="step-card reveal">
+                <div class="step-number">1</div>
+                <div class="step-title">Ro'yxatdan o'ting</div>
+                <div class="step-desc">Buyurtmachi yoki frilanser sifatida bepul ro'yxatdan o'ting va profilingizni to'ldiring</div>
+            </div>
+            <div class="step-card reveal">
+                <div class="step-number">2</div>
+                <div class="step-title">Loyiha joylashtiring</div>
+                <div class="step-desc">Loyihangiz talablarini yozing, byudjet belgilang va professional frilanserlardan takliflar oling</div>
+            </div>
+            <div class="step-card reveal">
+                <div class="step-number">3</div>
+                <div class="step-title">Natija oling</div>
+                <div class="step-desc">Eng yaxshi frilanserni tanlang, chat orqali muloqot qiling va sifatli natijani qabul qiling</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories -->
+{% if categories %}
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header reveal">
+            <h2>Kategoriyalar</h2>
+            <p>Turli sohalardagi loyihalar va frilanserlar</p>
+        </div>
+        <div class="grid grid-4 stagger-children">
+            {% for category in categories %}
+            <a href="{% url 'project_list' %}?category={{ category.slug }}" style="text-decoration:none;">
+                <div class="card category-card card-glow tilt-card reveal">
+                    <div class="category-icon">{{ category.icon|default:"💼" }}</div>
+                    <div class="category-name">{{ category.name }}</div>
+                    <div class="category-count">{{ category.projects.count }} loyiha</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Projects -->
+<section class="section">
+    <div class="container">
+        <div class="section-header reveal">
+            <h2>So'nggi loyihalar</h2>
+            <p>Eng yangi ochiq loyihalar</p>
+        </div>
+        {% if featured_projects %}
+        <div class="grid grid-3 stagger-children">
+            {% for project in featured_projects %}
+            <a href="{% url 'project_detail' pk=project.pk %}" style="text-decoration:none; color:inherit;">
+                <div class="card project-card card-glow reveal">
+                    <div class="card-header">
+                        <span class="tag status-{{ project.status }}">{{ project.get_status_display }}</span>
+                        {% if project.category %}
+                        <span class="tag">{{ project.category.name }}</span>
+                        {% endif %}
+                    </div>
+                    <h3 class="card-title">{{ project.title }}</h3>
+                    <p class="project-description">{{ project.description }}</p>
+                    <div class="project-meta">
+                        <span class="meta-item"><span class="icon">💰</span> {{ project.budget|intcomma }} so'm</span>
+                        <span class="meta-item"><span class="icon">📅</span> {{ project.days_left }} kun qoldi</span>
+                        <span class="meta-item"><span class="icon">📝</span> {{ project.proposals_count }} taklif</span>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex align-center gap-1">
+                            {% if project.client.avatar %}
+                                <img src="{{ project.client.avatar.url }}" class="avatar avatar-sm" alt="">
+                            {% else %}
+                                <div class="avatar-placeholder avatar-sm">{{ project.client.first_name|first|default:"B" }}</div>
+                            {% endif %}
+                            <span style="font-size:0.85rem;">{{ project.client.get_full_name|default:project.client.username }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-2 reveal">
+            <a href="{% url 'project_list' %}" class="btn btn-secondary">Barcha loyihalarni ko'rish →</a>
+        </div>
+        {% else %}
+        <div class="empty-state reveal">
+            <div class="empty-icon">📋</div>
+            <h3>Hozircha loyihalar yo'q</h3>
+            <p>Birinchi loyihani yarating yoki keyinroq qayta tekshiring!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Top Freelancers -->
+{% if top_freelancers %}
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="section-header reveal">
+            <h2>Yuqori baholangan frilanserlar</h2>
+            <p>Eng yaxshi natijalar ko'rsatgan mutaxassislar</p>
+        </div>
+        <div class="grid grid-4 stagger-children">
+            {% for fl in top_freelancers %}
+            <a href="{% url 'profile' username=fl.username %}" style="text-decoration:none; color:inherit;">
+                <div class="card freelancer-card card-glow tilt-card reveal">
+                    <div class="card-body">
+                        {% if fl.avatar %}
+                            <div class="avatar-ring">
+                                <img src="{{ fl.avatar.url }}" class="avatar avatar-lg" alt="">
+                            </div>
+                        {% else %}
+                            <div class="avatar-ring">
+                                <div class="avatar-placeholder avatar-lg">{{ fl.first_name|first|default:fl.username|first }}</div>
+                            </div>
+                        {% endif %}
+                        <div class="freelancer-name">{{ fl.get_full_name|default:fl.username }}</div>
+                        <div class="freelancer-title">{{ fl.location|default:"O'zbekiston" }}</div>
+                        <div class="stars">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= fl.average_rating %}★{% else %}<span class="star-empty">★</span>{% endif %}
+                            {% endfor %}
+                            <span style="color:var(--text-muted); font-size:0.8rem; margin-left:4px;">{{ fl.average_rating }}</span>
+                        </div>
+                        {% if fl.skills_list %}
+                        <div class="profile-skills" style="justify-content:center;">
+                            {% for skill in fl.skills_list|slice:":3" %}
+                            <span class="tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-2 reveal">
+            <a href="{% url 'freelancers' %}" class="btn btn-secondary">Barcha frilanserlar →</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Trust Badges -->
+<section class="section reveal">
+    <div class="container">
+        <div class="section-header">
+            <h2>Nima uchun UzWork?</h2>
+            <p>Minglab mutaxassislar va buyurtmachilar bizni tanlaydi</p>
+        </div>
+        <div class="trust-badges">
+            <div class="trust-badge reveal-scale">
+                <div class="trust-icon">🔒</div>
+                <div class="trust-label">Xavfsiz to'lovlar</div>
+                <div class="trust-desc">Barcha tranzaksiyalar himoyalangan</div>
+            </div>
+            <div class="trust-badge reveal-scale">
+                <div class="trust-icon">⚡</div>
+                <div class="trust-label">Tez natija</div>
+                <div class="trust-desc">O'rtacha 24 soat ichida taklif oling</div>
+            </div>
+            <div class="trust-badge reveal-scale">
+                <div class="trust-icon">🏆</div>
+                <div class="trust-label">Top mutaxassislar</div>
+                <div class="trust-desc">Tekshirilgan va baholangan frilanserlar</div>
+            </div>
+            <div class="trust-badge reveal-scale">
+                <div class="trust-icon">💬</div>
+                <div class="trust-label">24/7 qo'llab-quvvatlash</div>
+                <div class="trust-desc">Har doim yordam berishga tayyormiz</div>
+            </div>
+            <div class="trust-badge reveal-scale">
+                <div class="trust-icon">🇺🇿</div>
+                <div class="trust-label">Mahalliy platforma</div>
+                <div class="trust-desc">O'zbek tilidagi interfeys</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section cta-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="text-center reveal">
+            <h2 style="font-size:2.25rem; font-weight:800; color:var(--text-bright); margin-bottom:var(--space-md);">
+                Loyihangizni bugun boshlang!
+            </h2>
+            <p style="color:var(--text-secondary); font-size:1.1rem; margin-bottom:var(--space-2xl); max-width:500px; margin-left:auto; margin-right:auto;">
+                Ro'yxatdan o'ting va UzWork platformasida professional frilanserlarga yoki buyurtmachilarga qo'shiling.
+            </p>
+            <div class="hero-actions" style="justify-content: center;">
+                <a href="{% url 'register' %}" class="btn btn-primary btn-lg btn-pulse">🚀 Ro'yxatdan o'tish</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container"></div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div>
+            {% if profile_user.avatar %}
+                <img src="{{ profile_user.avatar.url }}" class="avatar avatar-xl" alt="">
+            {% else %}
+                <div class="avatar-placeholder avatar-xl">{{ profile_user.first_name|first|default:profile_user.username|first }}</div>
+            {% endif %}
+        </div>
+        <div class="profile-info" style="flex:1;">
+            <h1>{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+            <span class="profile-role {{ profile_user.role }}">
+                {% if profile_user.is_freelancer %}👨‍💻 Frilanser{% elif profile_user.is_client %}💼 Buyurtmachi{% else %}⚙️ Administrator{% endif %}
+            </span>
+
+            {% if profile_user.bio %}
+            <p style="color:var(--text-secondary); margin-bottom:var(--space-md);">{{ profile_user.bio }}</p>
+            {% endif %}
+
+            <div style="display:flex; gap:var(--space-lg); flex-wrap:wrap; color:var(--text-muted); font-size:0.9rem;">
+                {% if profile_user.location %}
+                <span>📍 {{ profile_user.location }}</span>
+                {% endif %}
+                {% if profile_user.phone %}
+                <span>📞 {{ profile_user.phone }}</span>
+                {% endif %}
+                {% if profile_user.email %}
+                <span>📧 {{ profile_user.email }}</span>
+                {% endif %}
+                {% if profile_user.portfolio_url %}
+                <a href="{{ profile_user.portfolio_url }}" target="_blank">🔗 Portfolio</a>
+                {% endif %}
+            </div>
+
+            {% if profile_user.skills_list %}
+            <div class="profile-skills">
+                {% for skill in profile_user.skills_list %}
+                <span class="tag">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="profile-stats">
+                <div class="stat">
+                    <div class="stat-value">
+                        <span class="stars">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= profile_user.average_rating %}★{% else %}<span class="star-empty">★</span>{% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                    <div class="stat-label">{{ profile_user.average_rating }} / 5 baho</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{{ profile_user.completed_projects_count }}</div>
+                    <div class="stat-label">Yakunlangan loyihalar</div>
+                </div>
+            </div>
+
+            <div class="mt-2 d-flex gap-1">
+                {% if request.user == profile_user %}
+                    <a href="{% url 'profile_edit' %}" class="btn btn-primary btn-sm">✏️ Tahrirlash</a>
+                {% else %}
+                    {% if request.user.is_authenticated %}
+                    <a href="{% url 'chat' username=profile_user.username %}" class="btn btn-primary btn-sm">✉️ Xabar yuborish</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews -->
+    {% if reviews %}
+    <h2 style="font-size:1.5rem; font-weight:800; color:var(--text-bright); margin-bottom:var(--space-lg);">
+        Sharhlar ({{ reviews|length }})
+    </h2>
+    {% for review in reviews %}
+    <div class="review-card">
+        <div class="review-header">
+            {% if review.reviewer.avatar %}
+                <img src="{{ review.reviewer.avatar.url }}" class="avatar" alt="">
+            {% else %}
+                <div class="avatar-placeholder">{{ review.reviewer.first_name|first|default:"?" }}</div>
+            {% endif %}
+            <div>
+                <div style="font-weight:600; color:var(--text-bright);">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">{{ review.project.title }} • {{ review.created_at|date:"d M Y" }}</div>
+            </div>
+            <div class="stars" style="margin-left:auto;">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= review.rating %}★{% else %}<span class="star-empty">★</span>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <p class="review-text">{{ review.comment }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

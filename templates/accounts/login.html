@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Kirish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container text-center">
+        <h1 style="animation: fadeInUp 0.5s ease both;">Tizimga kirish</h1>
+        <p style="animation: fadeInUp 0.5s ease 0.1s both;">UzWork hisobingizga kiring</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <div class="form-card glass" style="max-width: 450px; animation: scaleIn 0.5s ease 0.2s both;">
+        <h2>Xush kelibsiz! 👋</h2>
+        <p class="form-subtitle">Hisobingizga kirish uchun ma'lumotlaringizni kiriting</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_username">Foydalanuvchi nomi</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">Parol</label>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+                Kirish →
+            </button>
+        </form>
+
+        <p class="text-center mt-2" style="color:var(--text-muted);">
+            Hisobingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

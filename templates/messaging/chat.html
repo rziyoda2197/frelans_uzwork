@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat — {{ other_user.get_full_name|default:other_user.username }}{% endblock %}
+
+{% block content %}
+<div class="page-header" style="padding-bottom:0;">
+    <div class="container"></div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-xl);">
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <a href="{% url 'inbox' %}" class="btn btn-secondary btn-sm">← Orqaga</a>
+            {% if other_user.avatar %}
+                <img src="{{ other_user.avatar.url }}" class="avatar" alt="">
+            {% else %}
+                <div class="avatar-placeholder">{{ other_user.first_name|first|default:other_user.username|first }}</div>
+            {% endif %}
+            <div>
+                <div style="font-weight:600; color:var(--text-bright);">
+                    <a href="{% url 'profile' username=other_user.username %}" style="color:inherit;">
+                        {{ other_user.get_full_name|default:other_user.username }}
+                    </a>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">{{ other_user.get_role_display }}</div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages"
+             data-username="{{ other_user.username }}"
+             data-current-user="{{ request.user.username }}"
+             data-send-url="{% url 'send_message_ajax' username=other_user.username %}"
+             data-fetch-url="{% url 'get_new_messages' username=other_user.username %}"
+             data-csrf="{{ csrf_token }}">
+            {% for msg in messages %}
+            <div class="message-bubble {% if msg.sender == request.user %}mine{% else %}theirs{% endif %}" data-id="{{ msg.id }}">
+                {{ msg.content }}
+                <div class="message-time">{{ msg.created_at|date:"H:i" }}</div>
+            </div>
+            {% endfor %}
+            {% if not messages %}
+            <div class="empty-state" id="emptyChat" style="padding:var(--space-xl);">
+                <p>Suhbatni boshlang! 👋</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Xabar yozing..." autocomplete="off">
+            <button id="chatSend" type="button">📤 Yuborish</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    const csrf = chatMessages.dataset.csrf;
+    const sendUrl = chatMessages.dataset.sendUrl;
+    const fetchUrl = chatMessages.dataset.fetchUrl;
+    let lastId = 0;
+
+    // Get last message ID
+    const allBubbles = chatMessages.querySelectorAll('.message-bubble');
+    if (allBubbles.length > 0) {
+        lastId = parseInt(allBubbles[allBubbles.length - 1].dataset.id) || 0;
+    }
+
+    // Scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    scrollToBottom();
+
+    // Send message
+    function sendMessage() {
+        const content = chatInput.value.trim();
+        if (!content) return;
+
+        // Add message bubble immediately
+        const emptyChat = document.getElementById('emptyChat');
+        if (emptyChat) emptyChat.remove();
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble mine';
+        bubble.innerHTML = content + '<div class="message-time">hozir</div>';
+        chatMessages.appendChild(bubble);
+        chatInput.value = '';
+        scrollToBottom();
+
+        // Send via AJAX
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('csrfmiddlewaretoken', csrf);
+
+        fetch(sendUrl, {
+            method: 'POST',
+            body: formData
+        }).then(r => r.json()).then(data => {
+            if (data.status === 'ok') {
+                bubble.dataset.id = data.message.id;
+                lastId = Math.max(lastId, data.message.id);
+            }
+        }).catch(err => console.error('Send error:', err));
+    }
+
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Poll for new messages every 3 seconds
+    setInterval(function() {
+        fetch(fetchUrl + '?last_id=' + lastId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    const emptyChat = document.getElementById('emptyChat');
+                    if (emptyChat) emptyChat.remove();
+
+                    data.messages.forEach(function(msg) {
+                        if (!msg.is_mine) {
+                            const bubble = document.createElement('div');
+                            bubble.className = 'message-bubble theirs';
+                            bubble.dataset.id = msg.id;
+                            bubble.innerHTML = msg.content + '<div class="message-time">' + msg.time + '</div>';
+                            chatMessages.appendChild(bubble);
+                        }
+                        lastId = Math.max(lastId, msg.id);
+                    });
+                    scrollToBottom();
+                }
+            })
+            .catch(err => console.error('Fetch error:', err));
+    }, 3000);
+});
+</script>
+{% endblock %}

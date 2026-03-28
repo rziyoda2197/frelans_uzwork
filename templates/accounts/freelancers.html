@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Frilanserlar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 style="animation: fadeInUp 0.5s ease both;">👨‍💻 Frilanserlar</h1>
+        <p style="animation: fadeInUp 0.5s ease 0.1s both;">Professional frilanserlarni toping</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <!-- Search -->
+    <div class="filters-bar glass reveal">
+        <form method="get" style="display:flex; gap:var(--space-md); width:100%; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ query }}" class="form-input search-input" placeholder="🔍 Ism yoki ko'nikma bo'yicha qidirish...">
+            <button type="submit" class="btn btn-primary">Qidirish</button>
+            {% if query %}
+            <a href="{% url 'freelancers' %}" class="btn btn-secondary">Tozalash</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if freelancers %}
+    <div class="grid grid-3 stagger-children">
+        {% for fl in freelancers %}
+        <a href="{% url 'profile' username=fl.username %}" style="text-decoration:none; color:inherit;">
+            <div class="card freelancer-card card-glow tilt-card reveal">
+                <div class="card-body">
+                    {% if fl.avatar %}
+                        <div class="avatar-ring">
+                            <img src="{{ fl.avatar.url }}" class="avatar avatar-lg" alt="">
+                        </div>
+                    {% else %}
+                        <div class="avatar-ring">
+                            <div class="avatar-placeholder avatar-lg">{{ fl.first_name|first|default:fl.username|first }}</div>
+                        </div>
+                    {% endif %}
+                    <div class="freelancer-name">{{ fl.get_full_name|default:fl.username }}</div>
+                    <div class="freelancer-title">{{ fl.location|default:"O'zbekiston" }}</div>
+                    <div class="stars">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= fl.average_rating %}★{% else %}<span class="star-empty">★</span>{% endif %}
+                        {% endfor %}
+                        <span style="color:var(--text-muted); font-size:0.8rem; margin-left:4px;">{{ fl.average_rating }}</span>
+                    </div>
+                    {% if fl.skills_list %}
+                    <div class="profile-skills" style="justify-content:center;">
+                        {% for skill in fl.skills_list|slice:":4" %}
+                        <span class="tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if fl.bio %}
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-top:var(--space-sm); text-align:center;">
+                        {{ fl.bio|truncatewords:15 }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state reveal">
+        <div class="empty-icon">👨‍💻</div>
+        <h3>Frilanserlar topilmadi</h3>
+        <p>Qidiruv so'rovini o'zgartirib ko'ring</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Ro'yxatdan o'tish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container text-center">
+        <h1 style="animation: fadeInUp 0.5s ease both;">Ro'yxatdan o'tish</h1>
+        <p style="animation: fadeInUp 0.5s ease 0.1s both;">UzWork platformasiga qo'shiling</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <div class="form-card glass" style="animation: scaleIn 0.5s ease 0.2s both;">
+        <h2>Yangi hisob yaratish</h2>
+        <p class="form-subtitle">Buyurtmachi yoki frilanser sifatida ro'yxatdan o'ting</p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Role Selection -->
+            <div class="form-group">
+                <label>Rolni tanlang</label>
+                <div class="role-selection">
+                    <label class="role-option">
+                        <input type="radio" name="role" value="client" {% if form.role.value == 'client' or not form.role.value %}checked{% endif %}>
+                        <div class="role-card">
+                            <span class="role-icon">💼</span>
+                            <span class="role-name">Buyurtmachi</span>
+                            <span class="role-desc">Loyiha joylashtiring</span>
+                        </div>
+                    </label>
+                    <label class="role-option">
+                        <input type="radio" name="role" value="freelancer" {% if form.role.value == 'freelancer' %}checked{% endif %}>
+                        <div class="role-card">
+                            <span class="role-icon">👨‍💻</span>
+                            <span class="role-name">Frilanser</span>
+                            <span class="role-desc">Loyihalarda ishlang</span>
+                        </div>
+                    </label>
+                </div>
+                {{ form.role.errors }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_first_name">Ism</label>
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_last_name">Familiya</label>
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_username">Foydalanuvchi nomi</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_password1">Parol</label>
+                {{ form.password1 }}
+                {{ form.password1.errors }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_password2">Parolni tasdiqlash</label>
+                {{ form.password2 }}
+                {{ form.password2.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+                🚀 Ro'yxatdan o'tish
+            </button>
+        </form>
+
+        <p class="text-center mt-2" style="color:var(--text-muted);">
+            Hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

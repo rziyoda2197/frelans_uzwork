@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if editing %}Loyihani tahrirlash{% else %}Yangi loyiha{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>{% if editing %}✏️ Loyihani tahrirlash{% else %}➕ Yangi loyiha yaratish{% endif %}</h1>
+        <p>{% if editing %}Loyiha ma'lumotlarini yangilang{% else %}Professional frilanserlar uchun loyihangizni joylashtiring{% endif %}</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Loyiha nomi</label>
+                {{ form.title }}
+                {{ form.title.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>Kategoriya</label>
+                {{ form.category }}
+                {{ form.category.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>Tavsif</label>
+                {{ form.description }}
+                {{ form.description.errors }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Byudjet (so'mda)</label>
+                    {{ form.budget }}
+                    {{ form.budget.errors }}
+                </div>
+                <div class="form-group">
+                    <label>Muddat</label>
+                    {{ form.deadline }}
+                    {{ form.deadline.errors }}
+                </div>
+            </div>
+
+            <div class="d-flex gap-1">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    {% if editing %}💾 Saqlash{% else %}🚀 Loyihani joylash{% endif %}
+                </button>
+                <a href="{% url 'project_list' %}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

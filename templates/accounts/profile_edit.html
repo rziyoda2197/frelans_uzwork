@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Profilni tahrirlash{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Profilni tahrirlash</h1>
+        <p>Ma'lumotlaringizni yangilang</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="text-align:center; margin-bottom:var(--space-xl);">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" class="avatar avatar-xl" alt="" style="margin-bottom:var(--space-md);">
+                {% else %}
+                    <div class="avatar-placeholder avatar-xl" style="margin:0 auto var(--space-md);">{{ user.first_name|first|default:user.username|first }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Profil rasmi</label>
+                {{ form.avatar }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ism</label>
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </div>
+                <div class="form-group">
+                    <label>Familiya</label>
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>Telefon raqam</label>
+                {{ form.phone }}
+                {{ form.phone.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>Joylashuv</label>
+                {{ form.location }}
+                {{ form.location.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>O'zi haqida</label>
+                {{ form.bio }}
+                {{ form.bio.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>Ko'nikmalar <span style="color:var(--text-muted); font-weight:400;">(vergul bilan ajrating)</span></label>
+                {{ form.skills }}
+                {{ form.skills.errors }}
+            </div>
+
+            <div class="form-group">
+                <label>Portfolio havolasi</label>
+                {{ form.portfolio_url }}
+                {{ form.portfolio_url.errors }}
+            </div>
+
+            <div class="d-flex gap-1">
+                <button type="submit" class="btn btn-primary" style="flex:1;">💾 Saqlash</button>
+                <a href="{% url 'profile' username=user.username %}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

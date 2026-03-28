@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Loyihalarim{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-1">
+            <div>
+                <h1>📁 Loyihalarim</h1>
+                <p>{% if user.is_client %}Siz yaratgan loyihalar{% else %}Sizga tayinlangan loyihalar{% endif %}</p>
+            </div>
+            {% if user.is_client %}
+            <a href="{% url 'project_create' %}" class="btn btn-primary">➕ Yangi loyiha</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    {% if projects %}
+    <div class="grid grid-2">
+        {% for project in projects %}
+        <a href="{% url 'project_detail' pk=project.pk %}" style="text-decoration:none; color:inherit;">
+            <div class="card project-card">
+                <div class="card-header">
+                    <span class="tag status-{{ project.status }}">{{ project.get_status_display }}</span>
+                    {% if project.category %}
+                    <span class="tag">{{ project.category.name }}</span>
+                    {% endif %}
+                </div>
+                <h3 class="card-title">{{ project.title }}</h3>
+                <p class="project-description">{{ project.description }}</p>
+                <div class="project-meta">
+                    <span class="meta-item"><span class="icon">💰</span> {{ project.budget|intcomma }} so'm</span>
+                    <span class="meta-item"><span class="icon">📅</span> {{ project.deadline|date:"d M Y" }}</span>
+                    <span class="meta-item"><span class="icon">📝</span> {{ project.proposals_count }} taklif</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📁</div>
+        <h3>Hozircha loyihalar yo'q</h3>
+        {% if user.is_client %}
+        <p>Birinchi loyihangizni yarating!</p>
+        <a href="{% url 'project_create' %}" class="btn btn-primary mt-1">➕ Loyiha yaratish</a>
+        {% else %}
+        <p>Loyihalar ro'yxatidan taklif yuboring!</p>
+        <a href="{% url 'project_list' %}" class="btn btn-primary mt-1">📋 Loyihalarni ko'rish</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

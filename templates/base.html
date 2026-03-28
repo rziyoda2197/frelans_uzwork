@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="UzWork — O'zbekiston frilanserlar bozori. Loyihalar joylashtiring, frilanserlar toping.">
+    <meta name="theme-color" content="#6C5CE7">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <title>{% block title %}UzWork{% endblock %} | Frilanserlar Bozori</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="{% url 'home' %}" class="navbar-brand">
+                <div class="logo-icon">UW</div>
+                UzWork
+            </a>
+
+            <ul class="navbar-nav" id="navMenu">
+                <li><a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>🏠 Bosh sahifa</a></li>
+                <li><a href="{% url 'project_list' %}" {% if request.resolver_match.url_name == 'project_list' %}class="active"{% endif %}>📋 Loyihalar</a></li>
+                <li><a href="{% url 'freelancers' %}" {% if request.resolver_match.url_name == 'freelancers' %}class="active"{% endif %}>👨‍💻 Frilanserlar</a></li>
+                {% if user.is_authenticated %}
+                    {% if user.is_client %}
+                    <li><a href="{% url 'project_create' %}">➕ Loyiha yaratish</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'my_projects' %}" {% if request.resolver_match.url_name == 'my_projects' %}class="active"{% endif %}>📁 Loyihalarim</a></li>
+                {% endif %}
+            </ul>
+
+            <div class="navbar-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'inbox' %}" class="btn btn-secondary btn-sm nav-badge" title="Xabarlar">
+                        ✉️ Xabarlar
+                        <span class="badge" id="msgBadge" style="display:none;"></span>
+                    </a>
+                    {% if user.is_admin_user %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">⚙️ Admin</a>
+                    {% endif %}
+                    <a href="{% url 'profile' username=user.username %}" class="d-flex align-center gap-1" style="color: var(--text-primary);">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" class="avatar avatar-sm" alt="{{ user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder avatar-sm">{{ user.first_name|first|default:user.username|first }}</div>
+                        {% endif %}
+                        <span style="font-weight:600; font-size:0.85rem;">{{ user.first_name|default:user.username }}</span>
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">Chiqish</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Kirish</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Ro'yxatdan o'tish</a>
+                {% endif %}
+            </div>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div style="padding-top: 80px; padding-bottom: 0;">
+        <div class="container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" id="alert-{{ forloop.counter }}">
+                {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">🚀 UzWork</div>
+                    <p class="footer-desc">
+                        O'zbekistonning eng yirik frilanserlar platformasi.
+                        Loyihalaringizni professional frilanserlarga ishoning.
+                    </p>
+                    <div style="display:flex; gap:var(--space-md); margin-top:var(--space-lg);">
+                        <a href="#" class="btn btn-secondary btn-sm" style="border-radius:50%; width:40px; height:40px; padding:0;">📱</a>
+                        <a href="#" class="btn btn-secondary btn-sm" style="border-radius:50%; width:40px; height:40px; padding:0;">📷</a>
+                        <a href="#" class="btn btn-secondary btn-sm" style="border-radius:50%; width:40px; height:40px; padding:0;">👤</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Platforma</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'project_list' %}">Loyihalar</a></li>
+                        <li><a href="{% url 'freelancers' %}">Frilanserlar</a></li>
+                        <li><a href="{% url 'register' %}">Ro'yxatdan o'tish</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Yordam</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Qo'llanma</a></li>
+                        <li><a href="#">Ko'p so'raladigan savollar</a></li>
+                        <li><a href="#">Aloqa</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Ijtimoiy tarmoqlar</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Telegram</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">Facebook</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 UzWork. Barcha huquqlar himoyalangan.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

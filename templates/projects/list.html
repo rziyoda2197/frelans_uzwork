@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Loyihalar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-1">
+            <div>
+                <h1 style="animation: fadeInUp 0.5s ease both;">📋 Loyihalar</h1>
+                <p style="animation: fadeInUp 0.5s ease 0.1s both;">Barcha ochiq loyihalarni ko'ring</p>
+            </div>
+            {% if user.is_authenticated and user.is_client %}
+            <a href="{% url 'project_create' %}" class="btn btn-primary" style="animation: fadeInRight 0.5s ease 0.2s both;">➕ Yangi loyiha</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <!-- Filters -->
+    <form method="get" class="filters-bar glass reveal">
+        <input type="text" name="q" value="{{ query }}" class="form-input search-input" placeholder="🔍 Loyiha qidirish...">
+        <select name="category" class="form-select" style="max-width:180px;">
+            <option value="">Barcha kategoriyalar</option>
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if category_slug == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="min_budget" value="{{ min_budget }}" class="form-input" style="max-width:140px;" placeholder="Min byudjet">
+        <input type="number" name="max_budget" value="{{ max_budget }}" class="form-input" style="max-width:140px;" placeholder="Max byudjet">
+        <button type="submit" class="btn btn-primary btn-sm">🔍 Qidirish</button>
+        {% if query or category_slug or min_budget or max_budget %}
+        <a href="{% url 'project_list' %}" class="btn btn-secondary btn-sm">Tozalash</a>
+        {% endif %}
+    </form>
+
+    {% if projects %}
+    <div class="grid grid-2 stagger-children">
+        {% for project in projects %}
+        <a href="{% url 'project_detail' pk=project.pk %}" style="text-decoration:none; color:inherit;">
+            <div class="card project-card card-glow reveal">
+                <div class="card-header">
+                    <span class="tag status-{{ project.status }}">{{ project.get_status_display }}</span>
+                    {% if project.category %}
+                    <span class="tag">{{ project.category.name }}</span>
+                    {% endif %}
+                </div>
+                <h3 class="card-title">{{ project.title }}</h3>
+                <p class="project-description">{{ project.description }}</p>
+                <div class="project-meta">
+                    <span class="meta-item"><span class="icon">💰</span> {{ project.budget|intcomma }} so'm</span>
+                    <span class="meta-item"><span class="icon">📅</span> {{ project.days_left }} kun</span>
+                    <span class="meta-item"><span class="icon">📝</span> {{ project.proposals_count }} taklif</span>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex align-center gap-1">
+                        {% if project.client.avatar %}
+                            <img src="{{ project.client.avatar.url }}" class="avatar avatar-sm" alt="">
+                        {% else %}
+                            <div class="avatar-placeholder avatar-sm">{{ project.client.first_name|first|default:"B" }}</div>
+                        {% endif %}
+                        <span style="font-size:0.85rem;">{{ project.client.get_full_name|default:project.client.username }}</span>
+                    </div>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">{{ project.created_at|timesince }} oldin</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state reveal">
+        <div class="empty-icon">📋</div>
+        <h3>Loyihalar topilmadi</h3>
+        <p>Qidiruv filtrlarini o'zgartirib ko'ring yoki keyinroq tekshiring</p>
+        {% if user.is_authenticated and user.is_client %}
+        <a href="{% url 'project_create' %}" class="btn btn-primary mt-1">➕ Loyiha yaratish</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

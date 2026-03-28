@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Foydalanuvchilarni boshqarish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-1">
+            <div>
+                <h1>👥 Foydalanuvchilarni boshqarish</h1>
+                <p>Barcha foydalanuvchilar ro'yxati</p>
+            </div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Admin Panel</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <!-- Filters -->
+    <form method="get" class="filters-bar">
+        <input type="text" name="q" value="{{ query }}" class="form-input search-input" placeholder="🔍 Foydalanuvchi qidirish...">
+        <select name="role" class="form-select" style="max-width:180px;">
+            <option value="">Barcha rollar</option>
+            <option value="client" {% if role_filter == 'client' %}selected{% endif %}>Buyurtmachi</option>
+            <option value="freelancer" {% if role_filter == 'freelancer' %}selected{% endif %}>Frilanser</option>
+            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Qidirish</button>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Foydalanuvchi</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Holat</th>
+                    <th>Qo'shilgan</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <a href="{% url 'profile' username=u.username %}" class="d-flex align-center gap-1" style="color:var(--text-bright);">
+                            {% if u.avatar %}
+                                <img src="{{ u.avatar.url }}" class="avatar avatar-sm" alt="">
+                            {% else %}
+                                <div class="avatar-placeholder avatar-sm">{{ u.first_name|first|default:u.username|first }}</div>
+                            {% endif %}
+                            {{ u.get_full_name|default:u.username }}
+                        </a>
+                    </td>
+                    <td style="color:var(--text-muted);">{{ u.email }}</td>
+                    <td><span class="tag">{{ u.get_role_display }}</span></td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="tag tag-success">Faol</span>
+                        {% else %}
+                            <span class="tag tag-danger">Bloklangan</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--text-muted);">{{ u.date_joined|date:"d M Y" }}</td>
+                    <td>
+                        {% if u != request.user %}
+                        <div class="d-flex gap-1">
+                            <form method="post" action="{% url 'toggle_user_active' pk=u.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                    {% if u.is_active %}🔒 Bloklash{% else %}🔓 Faollashtirish{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'delete_user' pk=u.pk %}" onsubmit="return confirm('Haqiqatan ham o\'chirmoqchimisiz?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span style="color:var(--text-muted); font-size:0.8rem;">Siz</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

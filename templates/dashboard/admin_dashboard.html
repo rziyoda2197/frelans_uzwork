@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>⚙️ Admin Panel</h1>
+        <p>Platforma statistikasi va boshqaruvi</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-number">{{ stats.total_users }}</div>
+            <div class="stat-label">Jami foydalanuvchilar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💼</div>
+            <div class="stat-number">{{ stats.total_clients }}</div>
+            <div class="stat-label">Buyurtmachilar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👨‍💻</div>
+            <div class="stat-number">{{ stats.total_freelancers }}</div>
+            <div class="stat-label">Frilanserlar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number">{{ stats.total_projects }}</div>
+            <div class="stat-label">Jami loyihalar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div class="stat-number">{{ stats.open_projects }}</div>
+            <div class="stat-label">Ochiq loyihalar</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-number">{{ stats.in_progress_projects }}</div>
+            <div class="stat-label">Jarayondagi</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number">{{ stats.completed_projects }}</div>
+            <div class="stat-label">Yakunlangan</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-number">{{ stats.total_budget|intcomma }}</div>
+            <div class="stat-label">Jami byudjet (so'm)</div>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-xl);">
+        <!-- Additional Stats -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom:var(--space-lg);">📊 Qo'shimcha statistika</h3>
+            <div style="display:flex; flex-direction:column; gap:var(--space-md);">
+                <div style="display:flex; justify-content:space-between; padding:var(--space-sm) 0; border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-muted);">Jami takliflar</span>
+                    <span style="color:var(--text-bright); font-weight:600;">{{ stats.total_proposals }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:var(--space-sm) 0; border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-muted);">Jami sharhlar</span>
+                    <span style="color:var(--text-bright); font-weight:600;">{{ stats.total_reviews }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:var(--space-sm) 0; border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-muted);">Jami xabarlar</span>
+                    <span style="color:var(--text-bright); font-weight:600;">{{ stats.total_messages }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:var(--space-sm) 0;">
+                    <span style="color:var(--text-muted);">O'rtacha baho</span>
+                    <span style="color:var(--warning); font-weight:600;">★ {{ stats.avg_rating|floatformat:1 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom:var(--space-lg);">🔧 Tezkor amallar</h3>
+            <div style="display:flex; flex-direction:column; gap:var(--space-md);">
+                <a href="{% url 'manage_users' %}" class="btn btn-secondary" style="justify-content:flex-start;">
+                    👥 Foydalanuvchilarni boshqarish
+                </a>
+                <a href="{% url 'manage_projects_admin' %}" class="btn btn-secondary" style="justify-content:flex-start;">
+                    📋 Loyihalarni boshqarish
+                </a>
+                <a href="/admin/" class="btn btn-secondary" style="justify-content:flex-start;">
+                    🔧 Django Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <h2 style="font-size:1.3rem; font-weight:800; color:var(--text-bright); margin:var(--space-2xl) 0 var(--space-lg);">
+        So'nggi foydalanuvchilar
+    </h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Foydalanuvchi</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Qo'shilgan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in recent_users %}
+                <tr>
+                    <td>
+                        <a href="{% url 'profile' username=u.username %}" class="d-flex align-center gap-1" style="color:var(--text-bright);">
+                            {% if u.avatar %}
+                                <img src="{{ u.avatar.url }}" class="avatar avatar-sm" alt="">
+                            {% else %}
+                                <div class="avatar-placeholder avatar-sm">{{ u.first_name|first|default:u.username|first }}</div>
+                            {% endif %}
+                            {{ u.get_full_name|default:u.username }}
+                        </a>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="tag">{{ u.get_role_display }}</span></td>
+                    <td>{{ u.date_joined|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recent Projects -->
+    <h2 style="font-size:1.3rem; font-weight:800; color:var(--text-bright); margin:var(--space-2xl) 0 var(--space-lg);">
+        So'nggi loyihalar
+    </h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Loyiha</th>
+                    <th>Buyurtmachi</th>
+                    <th>Byudjet</th>
+                    <th>Holat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in recent_projects %}
+                <tr>
+                    <td><a href="{% url 'project_detail' pk=p.pk %}" style="color:var(--text-bright);">{{ p.title }}</a></td>
+                    <td>{{ p.client.get_full_name|default:p.client.username }}</td>
+                    <td>{{ p.budget|intcomma }} so'm</td>
+                    <td><span class="tag status-{{ p.status }}">{{ p.get_status_display }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

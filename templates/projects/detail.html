@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <ul class="breadcrumb">
+            <li><a href="{% url 'home' %}">🏠 Bosh sahifa</a></li>
+            <li><a href="{% url 'project_list' %}">Loyihalar</a></li>
+            <li class="active">{{ project.title|truncatewords:5 }}</li>
+        </ul>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <div class="project-detail-grid">
+        <!-- Left: Project Details -->
+        <div>
+            <div class="card glass" style="margin-bottom:var(--space-xl); animation: fadeInUp 0.5s ease both;">
+                <div class="card-header">
+                    <span class="tag status-{{ project.status }}">{{ project.get_status_display }}</span>
+                    {% if project.category %}
+                    <span class="tag">{{ project.category.name }}</span>
+                    {% endif %}
+                </div>
+                <h1 style="font-size:1.75rem; font-weight:800; color:var(--text-bright); margin-bottom:var(--space-md);">
+                    {{ project.title }}
+                </h1>
+                <div class="project-meta" style="margin-bottom:var(--space-xl);">
+                    <span class="meta-item"><span class="icon">💰</span> {{ project.budget|intcomma }} so'm</span>
+                    <span class="meta-item"><span class="icon">📅</span> {{ project.deadline|date:"d M Y" }}</span>
+                    <span class="meta-item"><span class="icon">⏰</span> {{ project.days_left }} kun qoldi</span>
+                    <span class="meta-item"><span class="icon">📝</span> {{ project.proposals_count }} taklif</span>
+                </div>
+                <div style="color:var(--text-secondary); line-height:1.8; white-space:pre-wrap;">{{ project.description }}</div>
+
+                {% if user == project.client %}
+                <div class="card-footer">
+                    <div class="d-flex gap-1">
+                        {% if project.status == 'open' %}
+                        <a href="{% url 'project_edit' pk=project.pk %}" class="btn btn-secondary btn-sm">✏️ Tahrirlash</a>
+                        {% endif %}
+                        {% if project.status == 'in_progress' %}
+                        <form method="post" action="{% url 'project_complete' pk=project.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">✅ Yakunlash</button>
+                        </form>
+                        {% endif %}
+                        {% if project.status == 'completed' and project.assigned_freelancer %}
+                        <a href="{% url 'create_review' project_pk=project.pk %}" class="btn btn-primary btn-sm">⭐ Sharh qoldirish</a>
+                        {% endif %}
+                        <a href="{% url 'project_delete' pk=project.pk %}" class="btn btn-danger btn-sm">🗑️ O'chirish</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Proposals Section -->
+            <h2 style="font-size:1.3rem; font-weight:800; color:var(--text-bright); margin-bottom:var(--space-lg);" class="reveal">
+                📝 Takliflar <span class="number-badge">{{ proposals|length }}</span>
+            </h2>
+
+            {% if proposals %}
+                {% for proposal in proposals %}
+                <div class="proposal-card reveal" style="transition-delay: {{ forloop.counter0 }}00ms;">
+                    <div class="proposal-header">
+                        {% if proposal.freelancer.avatar %}
+                            <div class="avatar-ring">
+                                <img src="{{ proposal.freelancer.avatar.url }}" class="avatar avatar-md" alt="">
+                            </div>
+                        {% else %}
+                            <div class="avatar-ring">
+                                <div class="avatar-placeholder avatar-md">{{ proposal.freelancer.first_name|first|default:"?" }}</div>
+                            </div>
+                        {% endif %}
+                        <div class="proposal-info">
+                            <a href="{% url 'profile' username=proposal.freelancer.username %}" class="proposal-name">
+                                {{ proposal.freelancer.get_full_name|default:proposal.freelancer.username }}
+                            </a>
+                            <div class="proposal-rating">
+                                <span class="stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= proposal.freelancer.average_rating %}★{% else %}<span class="star-empty">★</span>{% endif %}
+                                    {% endfor %}
+                                </span>
+                                {{ proposal.freelancer.average_rating }} • {{ proposal.freelancer.completed_projects_count }} yakunlangan
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="proposal-price">{{ proposal.price|intcomma }} so'm</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">{{ proposal.delivery_days }} kunda</div>
+                        </div>
+                    </div>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6;">{{ proposal.message }}</p>
+
+                    <div class="d-flex justify-between align-center" style="margin-top:var(--space-md);">
+                        <span class="tag {% if proposal.status == 'accepted' %}tag-success{% elif proposal.status == 'rejected' %}tag-danger{% else %}tag-warning{% endif %}">
+                            {{ proposal.get_status_display }}
+                        </span>
+                        {% if user == project.client and proposal.status == 'pending' %}
+                        <div class="proposal-actions">
+                            <form method="post" action="{% url 'proposal_accept' pk=proposal.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">✅ Qabul qilish</button>
+                            </form>
+                            <form method="post" action="{% url 'proposal_reject' pk=proposal.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">❌ Rad etish</button>
+                            </form>
+                            <a href="{% url 'chat' username=proposal.freelancer.username %}" class="btn btn-secondary btn-sm">✉️</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state reveal" style="padding:var(--space-xl);">
+                    <p>Hozircha takliflar yo'q</p>
+                </div>
+            {% endif %}
+
+            <!-- Proposal Form -->
+            {% if proposal_form %}
+            <div class="card glass mt-2 reveal" id="proposalForm">
+                <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-bright); margin-bottom:var(--space-lg);">
+                    💼 Taklif yuborish
+                </h3>
+                <form method="post" action="{% url 'proposal_create' pk=project.pk %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Narx (so'mda)</label>
+                            {{ proposal_form.price }}
+                            {{ proposal_form.price.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label>Bajarish muddati (kun)</label>
+                            {{ proposal_form.delivery_days }}
+                            {{ proposal_form.delivery_days.errors }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Xabar</label>
+                        {{ proposal_form.message }}
+                        {{ proposal_form.message.errors }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">📤 Taklif yuborish</button>
+                </form>
+            </div>
+            {% elif user.is_authenticated and user.is_freelancer and user_has_proposed %}
+            <div class="alert alert-info mt-2">
+                ✅ Siz bu loyihaga allaqachon taklif yuborgansiz
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Sidebar -->
+        <div>
+            <!-- Client Info -->
+            <div class="card glass" style="margin-bottom:var(--space-lg); animation: fadeInRight 0.5s ease 0.2s both;">
+                <h3 style="font-size:1rem; font-weight:700; color:var(--text-bright); margin-bottom:var(--space-lg);">
+                    Buyurtmachi
+                </h3>
+                <div class="d-flex align-center gap-1" style="margin-bottom:var(--space-md);">
+                    {% if project.client.avatar %}
+                        <div class="avatar-ring">
+                            <img src="{{ project.client.avatar.url }}" class="avatar avatar-md" alt="">
+                        </div>
+                    {% else %}
+                        <div class="avatar-ring">
+                            <div class="avatar-placeholder avatar-md">{{ project.client.first_name|first|default:"B" }}</div>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'profile' username=project.client.username %}" style="font-weight:600; color:var(--text-bright);">
+                            {{ project.client.get_full_name|default:project.client.username }}
+                        </a>
+                        <div style="font-size:0.8rem; color:var(--text-muted);">
+                            {{ project.client.location|default:"O'zbekiston" }}
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-muted);">
+                    {{ project.client.client_projects.count }} loyiha joylashtirilgan
+                </div>
+                {% if user.is_authenticated and user != project.client %}
+                <a href="{% url 'chat' username=project.client.username %}" class="btn btn-secondary btn-sm mt-1" style="width:100%;">
+                    ✉️ Xabar yuborish
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Assigned Freelancer -->
+            {% if project.assigned_freelancer %}
+            <div class="card" style="margin-bottom:var(--space-lg);">
+                <h3 style="font-size:1rem; font-weight:700; color:var(--text-bright); margin-bottom:var(--space-lg);">
+                    Tanlangan frilanser
+                </h3>
+                <div class="d-flex align-center gap-1">
+                    {% if project.assigned_freelancer.avatar %}
+                        <div class="avatar-ring">
+                            <img src="{{ project.assigned_freelancer.avatar.url }}" class="avatar avatar-md" alt="">
+                        </div>
+                    {% else %}
+                        <div class="avatar-ring">
+                            <div class="avatar-placeholder avatar-md">{{ project.assigned_freelancer.first_name|first|default:"F" }}</div>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'profile' username=project.assigned_freelancer.username %}" style="font-weight:600; color:var(--text-bright);">
+                            {{ project.assigned_freelancer.get_full_name|default:project.assigned_freelancer.username }}
+                        </a>
+                        <div class="stars" style="font-size:0.8rem;">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= project.assigned_freelancer.average_rating %}★{% else %}<span class="star-empty">★</span>{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Project Info -->
+            <div class="card gradient-border" style="animation: fadeInRight 0.5s ease 0.3s both;">
+                <h3 style="font-size:1rem; font-weight:700; color:var(--text-bright); margin-bottom:var(--space-lg);">
+                    Loyiha ma'lumotlari
+                </h3>
+                <div style="display:flex; flex-direction:column; gap:var(--space-md);">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Byudjet</span>
+                        <span style="color:var(--text-bright); font-weight:600;">{{ project.budget|intcomma }} so'm</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Muddat</span>
+                        <span style="color:var(--text-bright); font-weight:600;">{{ project.deadline|date:"d M Y" }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Takliflar</span>
+                        <span style="color:var(--text-bright); font-weight:600;">{{ project.proposals_count }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Yaratilgan</span>
+                        <span style="color:var(--text-bright); font-weight:600;">{{ project.created_at|date:"d M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

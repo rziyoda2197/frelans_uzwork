@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Xabarlar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>✉️ Xabarlar</h1>
+        <p>Suhbatlaringiz</p>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    {% if conversations %}
+    <div class="inbox-list">
+        {% for conv in conversations %}
+        <a href="{% url 'chat' username=conv.user.username %}" class="inbox-item">
+            {% if conv.user.avatar %}
+                <img src="{{ conv.user.avatar.url }}" class="avatar avatar-md" alt="">
+            {% else %}
+                <div class="avatar-placeholder avatar-md">{{ conv.user.first_name|first|default:conv.user.username|first }}</div>
+            {% endif %}
+            <div class="inbox-info">
+                <div class="inbox-name">{{ conv.user.get_full_name|default:conv.user.username }}</div>
+                <div class="inbox-preview">
+                    {% if conv.last_message %}
+                        {% if conv.last_message.sender == request.user %}Siz: {% endif %}{{ conv.last_message.content|truncatewords:10 }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if conv.last_message %}
+            <span class="inbox-time">{{ conv.last_message.created_at|timesince }} oldin</span>
+            {% endif %}
+            {% if conv.unread_count > 0 %}
+            <span class="unread-badge">{{ conv.unread_count }}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✉️</div>
+        <h3>Hozircha xabarlar yo'q</h3>
+        <p>Frilanser yoki buyurtmachi profiliga kirib xabar yuborishingiz mumkin</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

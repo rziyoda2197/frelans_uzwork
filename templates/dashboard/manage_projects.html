@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Loyihalarni boshqarish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-between align-center flex-wrap gap-1">
+            <div>
+                <h1>📋 Loyihalarni boshqarish</h1>
+                <p>Barcha loyihalar ro'yxati</p>
+            </div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-sm">← Admin Panel</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding-bottom: var(--space-3xl);">
+    <!-- Filters -->
+    <form method="get" class="filters-bar">
+        <input type="text" name="q" value="{{ query }}" class="form-input search-input" placeholder="🔍 Loyiha qidirish...">
+        <select name="status" class="form-select" style="max-width:180px;">
+            <option value="">Barcha holatlar</option>
+            <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Ochiq</option>
+            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>Jarayonda</option>
+            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Yakunlangan</option>
+            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Bekor qilingan</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Qidirish</button>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Loyiha</th>
+                    <th>Buyurtmachi</th>
+                    <th>Byudjet</th>
+                    <th>Holat</th>
+                    <th>Takliflar</th>
+                    <th>Sana</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>
+                        <a href="{% url 'project_detail' pk=project.pk %}" style="color:var(--text-bright); font-weight:600;">
+                            {{ project.title|truncatewords:5 }}
+                        </a>
+                    </td>
+                    <td style="color:var(--text-muted);">{{ project.client.get_full_name|default:project.client.username }}</td>
+                    <td>{{ project.budget|intcomma }} so'm</td>
+                    <td><span class="tag status-{{ project.status }}">{{ project.get_status_display }}</span></td>
+                    <td>{{ project.proposals_count }}</td>
+                    <td style="color:var(--text-muted);">{{ project.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'delete_project_admin' pk=project.pk %}"
+                              onsubmit="return confirm('Loyihani o\'chirmoqchimisiz?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">🗑️ O'chirish</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

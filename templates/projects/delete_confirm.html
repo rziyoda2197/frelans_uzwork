@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Loyihani o'chirish{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container"></div>
+</div>
+
+<div class="container">
+    <div class="card confirm-card" style="margin-top:var(--space-2xl);">
+        <h2>⚠️ Loyihani o'chirish</h2>
+        <p>"<strong>{{ project.title }}</strong>" loyihasini o'chirmoqchimisiz?<br>
+        Bu amalni bekor qilib bo'lmaydi.</p>
+        <div class="confirm-actions">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">🗑️ Ha, o'chirish</button>
+            </form>
+            <a href="{% url 'project_detail' pk=project.pk %}" class="btn btn-secondary">Bekor qilish</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
